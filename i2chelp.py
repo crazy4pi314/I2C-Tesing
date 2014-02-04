@@ -8,30 +8,153 @@ Last updated: Mon Feb 3
 import sys
 import math
 import array
-
-
-
-# Function definition is here
-def changeme( mylist ):
-   "This changes a passed list into this function"
-   mylist.append([1,2,3,4]);
-   print "Values inside the function: ", mylist
-   return
-
-# Now you can call changeme function
-mylist = [10,20,30];
-changeme( mylist );
-print "Values outside the function: ", mylist
+print"\n\nStarting..."
 
 
 
 
+'''
+General Utilites
+'''
+lsb = 2*2.5/4096;
+
+#Resistance of thermistor as a function of temperature
+def Rthermistor10k(temp):
+	return 10000*math.exp(3892*((298.15-(temp+273.15))/(298.15*(temp+273.15))))
+
+#Temperature of thermistor as a function of resistance
+def Tthermistor10k(R):
+	return (326.3457990944156-273.15*math.log(0.0001*R))/(13.053831963776624+math.log(0.0001*R))
+
+#This changes a passed int into the 4 character hex string representing that number
+def int2phex(intval):
+   		hexval=hex(intval)[2:].zfill(4).upper()   		
+   		return hexval
+
+#This changes a voltage into a codeword
+def v2code(v):
+   		code=int(round((v*4096)/(2.5-lsb)+lsb))   		
+   		return code
 
 
+'''
+DAC converting functions
+'''
+# Convert User HV to hex code
+def volt2hex(HVval):
+	# Check for invalid voltages
+	if (HVval > 500) or (HVval < 0):
+		print "User error, stupid voltage choice. Does not compute. Please try again."	
+		return '0000'
+	else:
+   		code=int2phex(int(round(((2103.09-703.78)/200)*HVval+4.125))) 		
+   		return code
+
+# Convert User temp to hex code
+def temp2hex(temp):
+	# Check for invalid temps
+	if (temp > 50) or (temp < -50):
+		print "User error, stupid temperature choice. Does not compute. Please try again."	
+		return '0000'
+	else:
+   		r=Rthermistor10k(temp)
+   		rdivide=2.5*(r/(r+65000))
+   		code=int2phex(v2code(rdivide))
+   		return code
+
+# Convert User comparitor level to hex code
+def comp2hex(comp):
+	# Check for invalid voltages
+	if (comp > 500) or (comp < 0):
+		print "User error, stupid threshold choice. Does not compute. Please try again."	
+		return '0000'
+	else:  
+   		code=int2phex(v2code(comp/211.5))
+   		return code
+
+'''
+DAC testing
+'''
+# #Testing the HV functions
+# hv= int(raw_input('Set the High Voltage (V):\n'));
+
+# hvout = volt2hex( hv );
+# print "HV codeword: ", hvout
 
 
+# #Testing the temp functions
+# t= int(raw_input('Set the temperature (C):\n'));
+
+# tout = temp2hex( t );
+# print "Temperature codeword: ", tout
+
+# #Testing the temp functions
+# comp=int(raw_input('Set the comparitor threshold (mV):\n'));
+
+# compout = comp2hex( comp );
+# print "Comparitor threshold codeword: ", compout
 
 
+'''
+ADC converting functions
+'''
+#switch to 10 bit readout 
+def hex10bitcode(hex16):
+	return int(bin(int(hex16,16))[2:].zfill(16)[4:],2)
+#convert 10 bit codeword to voltage
+def code2volt(code10bit,adcrange):
+	return ((adcrange-2*lsb)/(4096))*code10bit+lsb
+
+# Convert User hex code to HV
+def hex2volt(hexval):
+		intcode=hex10bitcode(hexval)
+   		volt=0.285855*intcode-0.5896118255011659	
+   		return round(volt,3)
+
+# Convert User hex code to temp
+def hex2temp(hexval):
+		intcode=hex10bitcode(hexval)
+		volt=code2volt(intcode,5)
+		print volt
+		voltdivider=(volt*65000)/(2.5-volt)
+		temp=Tthermistor10k(voltdivider)
+   		return round(temp,2)
+
+# Convert User hex code to TEC voltage
+def hex2TECV(hexval):
+		intcode=hex10bitcode(hexval)
+		volt=code2volt(intcode,5)
+   		return round(volt,3)
+
+# Convert User hex code to TEC voltage
+def hex2TECI(hexval):
+		intcode=hex10bitcode(hexval)
+		volt=code2volt(intcode,5)
+		current=volt/(0.05+0.27)
+   		return round(current,3)
+
+'''
+ADC testing
+'''
+# #Testing the HV readout
+# hv= raw_input('Readout the High Voltage:\n');
+# hvout = hex2volt( hv );
+# print "HV (V): ", hvout
+
+# #Testing the temperature readout
+# t= raw_input('Readout the temperature:\n');
+# tout = hex2temp( t );
+# print "Temp (C): ", tout
+
+# #Testing the TEC voltage readout
+# v= raw_input('Readout the TEC voltage:\n');
+# vout = hex2TECV( v );
+# print "TEC Voltage (V): ", vout
+
+#Testing the TEC current readout
+v= raw_input('Readout the TEC current:\n');
+vout = hex2TECI( v );
+print "TEC current (A): ", vout
 
 
 
