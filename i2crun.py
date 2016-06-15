@@ -5,9 +5,7 @@ import smbus
 import i2chelp
 import time
 
-
 print "\n\nInitializing the I2C controller..."
-
 
 bus = smbus.SMBus(1)
 
@@ -23,10 +21,6 @@ def send_command(address,register,command):
 #read command
 def read_command(address,register,length):
 	return bus.read_i2c_block_data(address,register,length)
-
-
-
-
 
 # Ask user for the address (not gonna for now)
 
@@ -273,7 +267,3 @@ while True:
 
 	else:
 		print "Invalid option, try again."
-
-
-
-

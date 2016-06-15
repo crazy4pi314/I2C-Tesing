@@ -1,8 +1,8 @@
 '''
 Helper functions for I2C interfacing
 Sarah Kaiser
-Created: Mon Feb 3
-Last updated: Fri Mar 28
+Created: Mon Feb 3 2015
+Last updated: Fri Mar 28 2015
 
 '''
 import sys
@@ -148,16 +148,6 @@ def hex2TECI(hexval):
 		volt=code2volt(intcode,5)
 		current=volt/(0.05+0.27)
    		return round(current,3)
-
-
-
-
-
-
-
-
-
-
 
 '''
 DAC testing
